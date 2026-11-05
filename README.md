@@ -181,14 +181,41 @@ adb shell pm uninstall --user 0 com.oppo.ctautoregist
 adb shell cmd package install-existing com.coloros.regservice
 ```
 
-## 10. 局限
+## 10. 附加发现：导出的 ContentProvider
+
+清单中 `cn.richinfo.dm.provider.DMProvider` 声明为 `exported="true"`，且**没有声明任何权限**：
+
+```xml
+<provider android:name="cn.richinfo.dm.provider.DMProvider"
+          android:enabled="true"
+          android:exported="true"
+          android:authorities="cn.richinfo.dm.provider" />
+```
+
+同一 APK 内其他组件都做了保护——`OppoReceiver` 要求 `oppo.permission.OPPO_COMPONENT_SAFE`，`EponaProvider` 要求 `com.oplus.permission.safe.SECURITY`，`OppoDMReceiver` 直接不导出——唯独这个 Provider 裸露。
+
+**实测（`shell`，uid 2000，无 root）**
+
+| 轮次 | 前提 | 调用次数 | 结果 |
+|---|---|---|---|
+| 1 | 数据库为空 | 4 | 全部 `No result found.`，无 `SecurityException` |
+| 2 | 数据库含 110,592 字节采集数据 | 9 | 全部 `No result found.`，无 `SecurityException` |
+
+**结论**
+
+- ✅ 成立：组件对外导出且缺少访问控制（CWE-926），任意应用可发起请求、不会被系统拦截；
+- ❌ 不成立：未能通过通用 `query()` 读到记录——Provider 的 URI 契约未映射到数据表，或仅实现 `call()` / `openFile`。
+
+> 复现记录见 [`evidence/provider_query.txt`](evidence/provider_query.txt)。本仓库只主张「访问控制缺失」，**不主张「数据已被读取」**。
+
+## 11. 局限
 
 - 单台设备、单次系统版本，结论不可外推到所有 ColorOS 机型；
 - 未做 MITM 解密，请求体内容为推断（依据本地库结构与加密类名）；
 - `a.fxltsbl.com` 的运营主体未核实，本报告只陈述“配置指向该域名”；
 - 上报成功以组件自身日志的 `result:1` 与本地表清空为准，未在服务端侧验证。
 
-## 11. 参考
+## 12. 参考
 
 - HyperOS 安全审计：<https://github.com/Liu8Can/HyperOS-Security-Analysis>
 - 技术核验（含辟谣）：<https://gist.github.com/std-microblock/c38cacab22bf0fffb94b247e09a4d948>

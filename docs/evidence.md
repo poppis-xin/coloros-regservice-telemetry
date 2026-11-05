@@ -21,6 +21,21 @@
 
 验证：`table_of_time_related_traffic._iccid1` 的密文 `r+noHQbYGNUjnLmWbfY7Rw==` 在 `key = MD5("134e3265829ff82daf16e7b740a600b5")` 下解得明文 `null`（该时段无 SIM 卡）。
 
+### 1.2 暴露的 ContentProvider
+
+```
+类名       cn.richinfo.dm.provider.DMProvider
+authority  cn.richinfo.dm.provider
+声明       android:exported="true"
+权限       无（未声明 permission / readPermission / writePermission）
+```
+
+同 APK 内其他组件均有保护：`OppoReceiver` → `oppo.permission.OPPO_COMPONENT_SAFE`；`EponaProvider` → `com.oplus.permission.safe.SECURITY`；`OppoDMReceiver` → `exported="false"`。
+
+两轮实测（`shell`，uid 2000）：库空时 4 次调用、库含 110,592 字节数据时 9 次调用，全部返回 `No result found.`，**未出现 SecurityException**。
+
+完整记录见 [`provider_query.txt`](provider_query.txt)。结论：导出与访问控制缺失成立（CWE-926），数据可读性未证实。
+
 ## 2. 全部 30 项已授予权限
 
 ```

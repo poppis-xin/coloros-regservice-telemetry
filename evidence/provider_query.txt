@@ -1,0 +1,66 @@
+Provider 访问记录（com.coloros.regservice / cn.richinfo.dm.provider.DMProvider）
+================================================================================
+测试身份: shell (uid 2000)，非 root、非系统应用、未声明任何权限
+设备     : OnePlus PJA110 / ColorOS 16.0.2.400(CN01) / Android 16
+
+--------------------------------------------------------------------------------
+第一轮（2026-11-06 04:26，数据库为空）
+--------------------------------------------------------------------------------
+$ adb shell content query --uri content://cn.richinfo.dm.provider
+No result found.
+$ adb shell content query --uri content://cn.richinfo.dm.provider/app_info
+No result found.
+$ adb shell content query --uri content://cn.richinfo.dm.provider/table_name_wifi_list
+No result found.
+$ adb shell content query --uri content://cn.richinfo.dm.provider/dm
+No result found.
+
+--------------------------------------------------------------------------------
+第二轮（2026-11-06 04:29，数据库含采集数据）
+--------------------------------------------------------------------------------
+前置操作:
+  1) 关闭 Wi-Fi 与移动数据（避免测试期间外发）
+  2) cmd package install-existing com.coloros.regservice
+  3) 触发采集:
+       am broadcast -a cn.richinfo.dmyk.action.APPINFO   -n com.coloros.regservice/com.dmyk.android.telephony.OppoReceiver
+       am broadcast -a cn.richinfo.dmyk.action.HEARTBEAT -n com.coloros.regservice/com.dmyk.android.telephony.OppoReceiver
+  4) 采集后数据库（root 视角，仅看大小）:
+       -rw-rw---- 1 u0_a201 u0_a201 110592 2026-11-06 04:29 cmcc_dm.db
+
+查询（9 种 URI 路径）:
+$ content query --uri content://cn.richinfo.dm.provider
+No result found.
+$ content query --uri content://cn.richinfo.dm.provider/app_info
+No result found.
+$ content query --uri content://cn.richinfo.dm.provider/appinfo
+No result found.
+$ content query --uri content://cn.richinfo.dm.provider/table_name_preinstall
+No result found.
+$ content query --uri content://cn.richinfo.dm.provider/table_name_wifi_list
+No result found.
+$ content query --uri content://cn.richinfo.dm.provider/dm
+No result found.
+$ content query --uri content://cn.richinfo.dm.provider/data
+No result found.
+$ content query --uri content://cn.richinfo.dm.provider/all
+No result found.
+$ content query --uri content://cn.richinfo.dm.provider/query
+No result found.
+
+收尾:
+  pm uninstall --user 0 com.coloros.regservice   -> Success（installed=false）
+  恢复 Wi-Fi 与移动数据
+
+--------------------------------------------------------------------------------
+判读
+--------------------------------------------------------------------------------
+1. 两轮共 13 次调用，均未出现 SecurityException / Permission Denial
+   —— 组件的导出状态确实生效，调用方未被 Android 访问控制拦截。
+2. 但在后端数据库已有 110,592 字节数据的情况下，通用 query 仍返回空结果
+   —— URI 契约未映射到数据表，或仅实现 call()/openFile。
+3. 结论：可主张「组件不当导出、缺少访问控制」（CWE-926）；
+   不可主张「已读取到数据」。
+
+补充线索（dex 字符串）:
+  - authority 另存在 vendor 变体 vnd.cn.richinfo.dm.provider.DMProvider
+  - 存在字符串 "Provider must grant uri permissions"，指向 openFile / grantUriPermission 路径
