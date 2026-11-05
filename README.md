@@ -85,6 +85,63 @@ https://a.fxltsbl.com/accept/flowCollectService               流量
 
 > 注：在未认证的网关环境下，客户端因证书校验失败发送 `TLS Alert 0x2e (certificate_unknown)` 并中止 —— 说明其使用系统 CA 严格校验，非明文 HTTP。
 
+### 6.1 加密实现：硬编码密钥 + 无 IV 的 ECB
+
+上报体使用 `AES/ECB/PKCS5Padding`，密钥并非服务端下发，而是**硬编码在 APK 的 native 库里**：
+
+```
+lib/arm64-v8a/libaes-jni.so   (5,808 bytes)
+  exports: Java_cn_richinfo_dm_util_AesUtil_keyFromJNI
+  rodata : 134e3265829ff82daf16e7b740a600b5
+```
+
+密钥推导与验证：
+
+```
+key   = MD5("134e3265829ff82daf16e7b740a600b5")     # 16 bytes
+mode  = AES/ECB/PKCS5Padding（无 IV）
+
+密文  r+noHQbYGNUjnLmWbfY7Rw==   (base64, 16 bytes)
+解密  →  "null"
+```
+
+该值来自 `table_of_time_related_traffic._iccid1`，对应时间段内设备无 SIM（日志 `getPrimarySlotId: no SIM`），因此字段被填成字符串 `null` 再加密。
+
+**这意味着：**
+
+1. **密钥可公开获取** —— 任何解包 APK 的人都能解开上报体，"加密"只遮挡明文抓包，不构成密码学保护；
+2. **ECB 是确定性加密** —— 相同明文得到相同密文，16 条记录里同一张卡的字段密文完全一致，可直接做关联/频率分析；
+3. 该设计对隐私保护**没有实质意义**，反而说明 SDK 侧未按"密钥托管/协商"的常规做法实现。
+
+### 6.2 数据流
+
+```mermaid
+flowchart LR
+  subgraph DEV["设备内（uid 10201，系统签名）"]
+    direction TB
+    TRIG["触发源<br/>BOOT_COMPLETED / SIM_STATE_CHANGED<br/>AlarmManager 10–18h<br/>广播 REGISITER / HEARTBEAT / APPINFO"]
+    CTRL["DMController<br/>appInfoReport / reportNetworkMsg<br/>reportWifiListMsg / reportNetSpeedMsg<br/>timeTrafficReport / reportHeartbeat"]
+    COL["采集能力<br/>QUERY_ALL_PACKAGES<br/>PACKAGE_USAGE_STATS<br/>Wi-Fi 扫描 / 基站<br/>READ_PRIVILEGED_PHONE_STATE"]
+    DB[("cmcc_dm.db<br/>app_info 458<br/>preinstall 2225<br/>wifi_list 21<br/>traffic 16")]
+    ENC["EncryptJsonRequest<br/>AES/ECB/PKCS5"]
+    KEY["libaes-jni.so<br/>seed 134e…00b5"]
+  end
+  subgraph NET["传输层"]
+    TLS["HTTPS / TLS 1.2<br/>SNI a.fxltsbl.com<br/>ALPN http/1.1"]
+  end
+  subgraph SRV["服务端（运营主体未核实）"]
+    API["a.fxltsbl.com<br/>/TerminalConfigService<br/>/accept/network<br/>/accept/wifiInfo<br/>/accept/netSpeedInfo<br/>/accept/flowCollectService"]
+  end
+  TRIG --> CTRL
+  CTRL --> COL
+  COL --> DB
+  KEY -. 取密钥 .-> ENC
+  DB --> ENC
+  ENC --> TLS
+  TLS --> API
+  API -. "result:1 后清空本地表" .-> DB
+```
+
 ## 7. 配置开关
 
 `shared_prefs/config_dm.xml` 中与采集相关的开关全部为 `Y`：

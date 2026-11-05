@@ -13,6 +13,14 @@
 
 > 出于版权考虑，本仓库**不附带厂商 APK**，仅提供哈希供核验。
 
+### 1.1 加密实现
+
+`lib/arm64-v8a/libaes-jni.so`（5,808 bytes，SHA-256 `02886d179d1fc14af460ea1ed3958353531db12fc849cba38186806e1a56d98a`）导出 `Java_cn_richinfo_dm_util_AesUtil_keyFromJNI`，rodata 段内硬编码种子 `134e3265829ff82daf16e7b740a600b5`。
+
+实际算法：`AES/ECB/PKCS5Padding`，`key = MD5(seed)`，无 IV。
+
+验证：`table_of_time_related_traffic._iccid1` 的密文 `r+noHQbYGNUjnLmWbfY7Rw==` 在 `key = MD5("134e3265829ff82daf16e7b740a600b5")` 下解得明文 `null`（该时段无 SIM 卡）。
+
 ## 2. 全部 30 项已授予权限
 
 ```
