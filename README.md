@@ -139,7 +139,7 @@ flowchart LR
   DB --> ENC
   ENC --> TLS
   TLS --> API
-  API -. "result:1 后清空本地表" .-> DB
+  API -. 上报成功后清空本地表 .-> DB
 ```
 
 ## 7. 配置开关
