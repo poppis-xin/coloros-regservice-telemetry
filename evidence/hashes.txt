@@ -1,0 +1,10 @@
+# 证据哈希（SHA-256）
+
+原始文件不随仓库发布，哈希用于交叉核验。
+
+e8f290c48ac1700d2e1a7d35a42323ea19237050d818319b4b466bcf5ea319b4  cmcc_dm_final.db   364544   处置前最终快照
+43c1e81368ca0a2c317b2f16e2f26a379ae4c789363c60c39612155c1870930f  cmcc_dm.db         364544   上报前快照（16 条流量 + 21 个 Wi-Fi）
+a75f03f58449e792a4e5b0ef729f3767074551cd682799d76df9bc4bd073f58e  dm_new.db          364544   上报后快照（4 张表归零）
+e0061b2497ba5fcf80a56e7daf88acc025e80274b7023553a816baab581d2010  RegService.apk    5217513   组件本体
+1bc04d947f84a5b31dbf12aa6474c4bf59887743ad2c9fb8c44d332f6c0ae6d2  config_dm.xml        8683   上报配置
+8aac24849b59504e679b218ef111a24ecb8a47274c39228570a8d891e2d41829  t3.txt              63578   tcpdump 文本抓包

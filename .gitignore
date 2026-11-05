@@ -1,0 +1,15 @@
+# 原始数据（含个人信息），不发布
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.apk
+*.pcap
+*.pcapng
+*.zip
+
+# 本地产物
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db

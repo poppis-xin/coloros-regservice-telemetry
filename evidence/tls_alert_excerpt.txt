@@ -1,0 +1,40 @@
+抓包摘录（tcpdump -i any -n -s0 -X "host 117.134.71.39 and tcp port 443"）
+本机地址已脱敏为 <local.ip>
+
+--- 场景 A：接入认证网关未登录（2026-11-06 03:32:15） ---
+
+03:32:15.957032 <local.ip>.40608 > 117.134.71.39.443: Flags [P.], length 517
+    ClientHello（SNI 明文可见：a.fxltsbl.com，ALPN: http/1.1）
+
+03:32:15.961965 117.134.71.39.443 > <local.ip>.40608: Flags [P.], length 1311
+    ServerHello + Certificate
+    证书 subject: CN=demotest.doctorcom.com; O=Doctorcom LTD.; C=CN
+    证书 issuer : 同上（自签）；有效期 2019-09-09 ~ 2039-10-24
+
+03:32:15.970323 <local.ip>.40608 > 117.134.71.39.443: Flags [P.], length 7
+    0x0030:  268c 71ba 1503 0300 0202 2e
+                            ^^^^ ^^^^^ ^^ ^^
+                            TLS  content=alert(21) version=0303 len=0002
+                                 level=fatal(2) description=certificate_unknown(46)
+
+随后客户端主动 FIN，连接终止。同批次共 6 条并发连接，行为一致。
+
+--- 场景 B：登录网关后（2026-11-06 03:38:30） ---
+
+同一目标 a.fxltsbl.com / 117.134.71.39:443 握手正常完成，
+组件日志输出：
+
+  {"tag":"网络采集","status":"report","result":1}
+  {"tag":"Wifi采集","status":"report","result":1}
+  {"tag":"网速采集","status":"report","result":1}
+  {"tag":"流量采集","status":"report","result":1}
+  {"tag":"心跳采集","status":"report","result":1}
+
+随后本地库对应表被清空：
+  table_of_time_related_traffic   16 -> 0
+  table_name_wifi_list             1 -> 0
+  table_name_network               1 -> 0
+  table_name_net_speed             1 -> 0
+
+说明：场景 A 的失败是链路被认证网关中间人劫持所致，与组件本身无关；
+      场景 B 证明上报链路可用，且成功后执行本地清理。

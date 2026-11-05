@@ -1,0 +1,44 @@
+# cmcc_dm.db (处置前快照，路径已省略)
+# tables: 12
+
+[table] android_metadata                         rows=1
+        cols: locale
+        sample(redacted): locale='*****'
+
+[table] app_info_1793641447595                   rows=458
+        cols: _id, _pkgName, app_name, _firstTime, _uid, _app_flags, _launchCount, _launchCountTemp, _useTime, _ussTimeTemp, _app_install_time, _mobile_rx, _mobile_tx, _wifi_rx, _wifi_tx
+        sample(redacted): _id=1; _pkgName='****************************************'; app_name='****************************************'; _firstTime=1793123031328; _uid=10147; _app_flags=814235213; _launchCount=0; _launchCountTemp=0; _useTime=0; _ussTimeTemp=0; _app_install_time=14696182976; _mobile_rx=0; _mobile_tx=0; _wifi_rx=0; _wifi_tx=0
+
+[table] sqlite_sequence                          rows=3
+        cols: name, seq
+        sample(redacted): name='*********************'; seq=2225
+
+[table] table_app_collect_list                   rows=1
+        cols: _id, app_table_name, start_time, end_time, _iccid1, _iccid2, _imsi1, _imsi2
+        sample(redacted): _id=9; app_table_name='**********************'; start_time=1793641447595; end_time=1793907801144; _iccid1=''; _iccid2=''; _imsi1=''; _imsi2=''
+
+[table] table_name_battery_charge                rows=0
+        cols: _id, battery_electricity, battery_temperature, _timestamp, battery_Status
+
+[table] table_name_bluetooth                     rows=0
+        cols: _id, _timestamp, bluetooth_name, bluetooth_mac, bluetooth_uuid, bluetooth_log, bluetooth_state
+
+[table] table_name_lock_info                     rows=0
+        cols: _messageID, _contractCode, _province, _city, _businessHall, _businessSystem, _terminalType, _orgCode, _orgName, _doTerminalLock
+
+[table] table_name_net_speed                     rows=0
+        cols: _id, netcard, _imsi1, _imsi2, _cellid1, _lac1, _cellid2, _lac2, _pci1, _pci2, _bssid, _ssid, router_ip, _timestamp, _speed_mobile_rx, _speed_mobile_tx, _speed_wifi_Rx, _speed_wifi_tx
+
+[table] table_name_network                       rows=0
+        cols: _id, _bssid, _ssid, _imsi1, _imsi2, _iccid1, _iccid2, _cellid1, _cellid2, _pci1, _pci2, _lac1, _lac2, _signal_intensity1, _signal_intensity2, _dataCart_Staus1, _dataCart_Staus2, _wlan_signal_intensity, _channel, _wlanSwitch, slotNetwork1, slotNetwork2, erafcn4G1, erafcn5G1, band1, rsrp4G1, rsrp5G1, rsrq4G1, rsrq5G1, sinr4G1, sinr5G1, operator1, erafcn4G2, erafcn5G2, band2, rsrp4G2, rsrp5G2, rsrq4G2, rsrq5G2, sinr4G2, sinr5G2, operator2, netcard, voicecard, _timestamp
+
+[table] table_name_preinstall                    rows=2225
+        cols: _id, app_name, _app_install_time, _app_flags, _app_version, _app_signature_info, _pkgName
+        sample(redacted): _id=1; app_name='****'; _app_install_time='***********'; _app_flags='*********'; _app_version='*******'; _app_signature_info='********************************'; _pkgName='*************************'
+
+[table] table_name_wifi_list                     rows=0
+        cols: _id, _timestamp, _wifi_list
+
+[table] table_of_time_related_traffic            rows=0
+        cols: _id, _timestamp, start_time, _iccid1, _iccid2, _imsi1, _imsi2, _lac1, _cellid1, _lac2, _cellid2, _pci1, _pci2, collect_Day, day_hour, net_type1, net_type2, total_flow_wifi, total_flow_now_data, total_flow_now_data2, router_mac, router_ip
+
